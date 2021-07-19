@@ -17,7 +17,7 @@ import org.workcraft.utils.WorkspaceUtils;
 import org.workcraft.workspace.WorkspaceEntry;
 
 import java.net.URL;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,7 +53,7 @@ class TransformationCommandTests {
         new OptimiseZeroDelayTransformationCommand().execute(we);
 
         optZeroDelays.removeAll(getZeroDelayGates(circuit));
-        Assertions.assertEquals(new HashSet<>(Arrays.asList(bubble25)), optZeroDelays);
+        Assertions.assertEquals(new HashSet<>(Collections.singletonList(bubble25)), optZeroDelays);
 
         circuit.selectAll();
 
@@ -104,10 +104,10 @@ class TransformationCommandTests {
 
         ContractComponentTransformationCommand contractCommand = new ContractComponentTransformationCommand();
         circuit.select(buffers);
-        Set<VisualFunctionComponent> trivialsBefore = getTrivialGates(circuit);
+        Set<VisualFunctionComponent> trivialGatesBefore = getTrivialGates(circuit);
         contractCommand.execute(we);
-        Set<VisualFunctionComponent> trivialsAfter = getTrivialGates(circuit);
-        Assertions.assertEquals(trivialsBefore.size() - buffers.size(), trivialsAfter.size());
+        Set<VisualFunctionComponent> trivialGatesAfter = getTrivialGates(circuit);
+        Assertions.assertEquals(trivialGatesBefore.size() - buffers.size(), trivialGatesAfter.size());
         Assertions.assertEquals(true, new CombinedVerificationCommand().execute(we));
 
         framework.closeWork(we);

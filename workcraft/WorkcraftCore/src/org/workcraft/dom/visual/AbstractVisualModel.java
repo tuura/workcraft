@@ -287,6 +287,19 @@ public abstract class AbstractVisualModel extends AbstractModel<VisualNode, Visu
     }
 
     @Override
+    public VisualPage createVisualPage(Container container) {
+        if (container == null) {
+            container = getRoot();
+        }
+        VisualPage page = new VisualPage(new PageNode());
+        container.add(page);
+
+        Container mathContainer = NamespaceHelper.getMathContainer(this, container);
+        mathContainer.add(page.getReferencedComponent());
+        return page;
+    }
+
+    @Override
     public void draw(Graphics2D g, Decorator decorator) {
         DrawMan.draw(this, g, decorator, getRoot());
     }
@@ -492,17 +505,6 @@ public abstract class AbstractVisualModel extends AbstractModel<VisualNode, Visu
         }
     }
 
-    private Container getCurrentMathLevel() {
-        Container currentMathLevel;
-        VisualComponent visualContainer = Hierarchy.getNearestAncestor(getCurrentLevel(), VisualComponent.class);
-        if (visualContainer == null) {
-            currentMathLevel = getMathModel().getRoot();
-        } else {
-            currentMathLevel = (Container) visualContainer.getReferencedComponent();
-        }
-        return currentMathLevel;
-    }
-
     /**
      * @return Returns selection ordered the same way as the objects are ordered in the currently active group.
      */
@@ -537,11 +539,9 @@ public abstract class AbstractVisualModel extends AbstractModel<VisualNode, Visu
         VisualPage page = null;
         Collection<VisualNode> nodes = SelectionHelper.getGroupableCurrentLevelSelection(this);
         if (!nodes.isEmpty()) {
-            PageNode pageNode = new PageNode();
-            getCurrentMathLevel().add(pageNode);
-            page = new VisualPage(pageNode);
-            getCurrentLevel().add(page);
-            if (reparent(page, this, getCurrentLevel(), nodes)) {
+            Container container = getCurrentLevel();
+            page = createVisualPage(container);
+            if (reparent(page, this, container, nodes)) {
                 Point2D pos = TransformHelper.getSnappedCentre(nodes);
                 VisualModelTransformer.translateNodes(nodes, -pos.getX(), -pos.getY());
                 page.setPosition(pos);

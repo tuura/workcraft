@@ -1,6 +1,5 @@
 package org.workcraft.dom.visual;
 
-import org.workcraft.dom.Node;
 import org.workcraft.dom.visual.connections.*;
 import org.workcraft.dom.visual.connections.VisualConnection.ConnectionType;
 
@@ -109,44 +108,45 @@ public class ConnectionHelper {
         return locationsInRootSpace;
     }
 
-    public static LinkedList<Point2D> getMergedControlPoints(VisualTransformableNode mergeNode, VisualConnection con1, VisualConnection con2) {
-        LinkedList<Point2D> locations = new LinkedList<>();
-        Point2D lastLocation = null;
-        if (con1 != null) {
-            if (con1.getGraphic() instanceof Polyline) {
-                Polyline polyline = (Polyline) con1.getGraphic();
-                AffineTransform localToRootTransform = TransformHelper.getTransformToRoot(con1);
-                for (ControlPoint cp:  polyline.getControlPoints()) {
-                    Point2D location = localToRootTransform.transform(cp.getPosition(), null);
-                    locations.add(location);
-                    lastLocation = location;
-                }
-            }
-        }
-        Point2D nodeLocation = null;
+    public static LinkedList<Point2D> getMergedControlPoints(VisualTransformableNode mergeNode,
+            VisualConnection firstConnection, VisualConnection secondConnection) {
+
+        LinkedList<Point2D> result = getControlPoints(firstConnection);
+        Point2D lastLocation = result.isEmpty() ? null : result.getLast();
+
         if (mergeNode != null) {
-            nodeLocation = mergeNode.getRootSpacePosition();
+            Point2D nodeLocation = mergeNode.getRootSpacePosition();
             if ((lastLocation != null) && !areDifferentAnchorPoints(nodeLocation, lastLocation)) {
-                locations.removeLast();
+                result.removeLast();
             }
-            locations.add(nodeLocation);
+            result.add(nodeLocation);
+            lastLocation = nodeLocation;
         }
-        Point2D firstLocation = null;
-        if (con2 != null) {
-            if (con2.getGraphic() instanceof Polyline) {
-                Polyline polyline = (Polyline) con2.getGraphic();
-                AffineTransform localToRootTransform = TransformHelper.getTransformToRoot(con2);
-                for (ControlPoint cp:  polyline.getControlPoints()) {
-                    Point2D location = localToRootTransform.transform(cp.getPosition(), null);
-                    locations.add(location);
-                    if ((firstLocation == null) && (nodeLocation != null) && !areDifferentAnchorPoints(nodeLocation, location)) {
-                        locations.removeLast();
-                        firstLocation = location;
-                    }
-                }
+
+        LinkedList<Point2D> secondLocations = getControlPoints(secondConnection);
+        Point2D startLocation = secondLocations.isEmpty() ? null : secondLocations.getFirst();
+        if ((startLocation != null) && (lastLocation != null) && !areDifferentAnchorPoints(lastLocation, startLocation)) {
+            secondLocations.removeFirst();
+        }
+        result.addAll(secondLocations);
+        return result;
+    }
+
+    public static Point2D getControlPoint(VisualTransformableNode node) {
+        return node == null ? null : node.getRootSpacePosition();
+    }
+
+    public static LinkedList<Point2D> getControlPoints(VisualConnection connection) {
+        LinkedList<Point2D> result = new LinkedList<>();
+        if ((connection != null) && (connection.getGraphic() instanceof Polyline)) {
+            Polyline polyline = (Polyline) connection.getGraphic();
+            AffineTransform localToRootTransform = TransformHelper.getTransformToRoot(connection);
+            for (ControlPoint cp : polyline.getControlPoints()) {
+                Point2D location = localToRootTransform.transform(cp.getPosition(), null);
+                result.add(location);
             }
         }
-        return locations;
+        return result;
     }
 
     public static void filterControlPoints(Polyline polyline) {
@@ -211,16 +211,6 @@ public class ConnectionHelper {
         }
     }
 
-    public static void removeControlPointsByDistance(Polyline polyline, Point2D pos, double threshold) {
-        List<ControlPoint> controlPoints = new LinkedList<>(polyline.getControlPoints());
-        for (ControlPoint cp:  controlPoints) {
-            Point2D curPos = cp.getPosition();
-            if (curPos.distance(pos) < threshold) {
-                polyline.remove(cp);
-            }
-        }
-    }
-
     public static double calcGradient(Point2D p1, Point2D p2, Point2D p3) {
         double p1x = p1.getX();
         double p1y = p1.getY();
@@ -229,11 +219,6 @@ public class ConnectionHelper {
         double p3x = p3.getX();
         double p3y = p3.getY();
         return p1x * (p2y - p3y) + p2x * (p3y - p1y) + p3x * (p1y - p2y);
-    }
-
-    public static VisualConnection getParentConnection(ControlPoint cp) {
-        Node graphic = cp.getParent();
-        return (graphic == null) ? null : (VisualConnection) graphic.getParent();
     }
 
     public static Point2D getPredPoint(VisualConnection connection, Point2D splitPointInLocalSpace) {
