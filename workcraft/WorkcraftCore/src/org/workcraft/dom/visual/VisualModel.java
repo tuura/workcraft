@@ -45,6 +45,7 @@ public interface VisualModel extends Model<VisualNode, VisualConnection>, Observ
     <T extends VisualComponent> T getVisualComponentByMathReference(String ref, Class<T> type);
 
     <T extends VisualReplica> T createVisualReplica(VisualComponent master, Class<T> type, Container container);
+    VisualPage createVisualPage(Container container);
 
     void selectAll();
     void selectNone();

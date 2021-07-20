@@ -3,7 +3,6 @@ package org.workcraft.plugins.circuit.stg;
 import org.workcraft.dom.Container;
 import org.workcraft.dom.Node;
 import org.workcraft.dom.hierarchy.NamespaceHelper;
-import org.workcraft.dom.math.PageNode;
 import org.workcraft.dom.visual.*;
 import org.workcraft.dom.visual.connections.VisualConnection;
 import org.workcraft.exceptions.InvalidConnectionException;
@@ -127,16 +126,8 @@ public class CircuitToStgConverter {
                     String containerRef = circuit.getMathReference(srcParent);
                     dstContainer = refToPageMapping.get(containerRef);
                 }
-                if (dstContainer == null) {
-                    dstContainer = stg.getRoot();
-                }
-                String name = circuit.getMathName(srcComponent);
-                VisualPage dstPage = new VisualPage(new PageNode());
-                dstContainer.add(dstPage);
-
-                Container dstMathContainer = NamespaceHelper.getMathContainer(stg, dstContainer);
-                dstMathContainer.add(dstPage.getReferencedComponent());
-                stg.setMathName(dstPage, name);
+                VisualPage dstPage = stg.createVisualPage(dstContainer);
+                stg.setMathName(dstPage, circuit.getMathName(srcComponent));
             }
         }
     }

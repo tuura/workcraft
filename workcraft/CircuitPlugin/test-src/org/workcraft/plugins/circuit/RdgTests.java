@@ -51,6 +51,8 @@ class RdgTests {
         WorkspaceEntry srcWe = framework.loadWork(srcUrl.getFile());
 
         RefinementDependencyGraph rdg = new RefinementDependencyGraph(srcWe);
+        framework.closeWork(srcWe);
+
         Assertions.assertEquals(vertexCount, rdg.getVertices().size());
         Assertions.assertEquals(edgeCount, rdg.getVertices().stream()
                 .map(rdg::getInstanceDependencyMap)

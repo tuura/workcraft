@@ -3,7 +3,6 @@ package org.workcraft.dom.hierarchy;
 import org.workcraft.dom.Container;
 import org.workcraft.dom.Node;
 import org.workcraft.dom.math.MathModel;
-import org.workcraft.dom.math.PageNode;
 import org.workcraft.dom.visual.VisualComponent;
 import org.workcraft.dom.visual.VisualGroup;
 import org.workcraft.dom.visual.VisualModel;
@@ -129,17 +128,10 @@ public class NamespaceHelper {
         for (Node srcNode: srcContainer.getChildren()) {
             if (srcNode instanceof VisualPage) {
                 VisualPage srcPage = (VisualPage) srcNode;
-                String name = srcModel.getMathName(srcPage);
-
-                VisualPage dstPage = new VisualPage(new PageNode());
-                dstContainer.add(dstPage);
+                VisualPage dstPage = dstModel.createVisualPage(dstContainer);
+                dstModel.setMathName(dstPage, srcModel.getMathName(srcPage));
                 dstPage.copyPosition(srcPage);
                 dstPage.copyStyle(srcPage);
-
-                Container dstMathContainer = NamespaceHelper.getMathContainer(dstModel, dstContainer);
-                dstMathContainer.add(dstPage.getReferencedComponent());
-                dstModel.setMathName(dstPage, name);
-
                 toProcess.put(srcPage, dstPage);
             } else if (srcNode instanceof VisualGroup) {
                 VisualGroup srcGroup = (VisualGroup) srcNode;
